@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dynamic Huffman - Encode Decoder Pro</title>
+<style>
+body { font-family: Arial; padding:40px; background:#f4f6f9; overflow-x: auto; }
+img { max-width: 100%; height: auto; display: block; margin-top: 15px;
+}
+h1 { color:#2c3e50; }
+input { padding:10px; width:300px; }
+button { padding:10px 15px; background:#2c3e50; color:white; border:none; cursor:pointer; }
+button:hover { background:#34495e; }
+table { border-collapse: collapse; margin-top:20px; }
+th, td { border:1px solid black; padding:6px; }
+</style>
+</head>
+
+<body>
+
+<h1>Dynamic Huffman Encoding / Decoding</h1>
+
+<input id="encodeInput" placeholder="Enter message like AADCCDD">
+<button onclick="encode()">Encode</button>
+
+<br><br>
+
+<input id="decodeInput" placeholder="Enter encoded bits like 0100000110010001000001000011001001001">
+<button onclick="decode()">Decode</button>
+
+<br><br>
+
+<div id="stats"></div>
+<div id="finalOutput"></div>
+
+<br><br>
+<a href="/"><button>⬅ Back to Home</button></a>
+
+<script>
+
+function encode(){
+
+fetch('/dynamic_huffman_encode',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body: JSON.stringify({
+input: document.getElementById('encodeInput').value
+})
+})
+.then(r=>r.json())
+.then(data=>{
+
+let html = "<h3>Encoded Output:</h3>"+data.output;
+html += "<br><br><h3>Compression Stats</h3>";
+html += `Original: ${data.stats.original} |
+Encoded: ${data.stats.encoded} |
+Ratio: ${data.stats.ratio} |
+Compression %: ${data.stats.percentage}<br><br>`;
+
+html += "<h2>Step-by-Step Visualization</h2>";
+
+data.steps.forEach(step=>{
+
+html += `<hr><h3>Step ${step.step} - Processing '${step.symbol}'</h3>`;
+html += `<b>Type:</b> ${step.type}<br>`;
+html += `<b>Code:</b> ${step.code}<br><br>`;
+
+
+html += `
+<div style="overflow:auto; border:1px solid #ccc; padding:10px; margin-bottom:20px;">
+    <img src="data:image/png;base64,${step.tree}">
+</div>
+`;
+
+
+});
+
+document.getElementById("finalOutput").innerHTML = html;
+
+})
+.catch(err=>{
+alert("Encoding failed");
+});
+}
+
+function decode(){
+
+fetch('/dynamic_huffman_decode',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body: JSON.stringify({
+input: document.getElementById('decodeInput').value
+})
+})
+.then(r=>r.json())
+.then(data=>{
+document.getElementById("finalOutput").innerHTML =
+"<h3>Decoded Output:</h3>"+data.output+
+"<br><br><h3>Final Tree</h3>"+
+"<img src='data:image/png;base64,"+data.tree+"'/>";
+
+});
+}
+
+</script>
+
+</body>
+</html>

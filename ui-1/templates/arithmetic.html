@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Arithmetic Encoding - Encode Decoder Pro</title>
+<style>
+body { font-family: Arial; padding:40px; background:#f4f6f9; }
+h1 { color:#2c3e50; }
+input { padding:10px; width:300px; }
+button { padding:10px 15px; background:#2c3e50; color:white; border:none; cursor:pointer; }
+button:hover { background:#34495e; }
+table { border-collapse: collapse; margin-top:20px; width:100%; }
+th, td { border:1px solid black; padding:6px; text-align:center; }
+th { background:#e0e0e0; }
+</style>
+</head>
+
+<body>
+
+<h1>Arithmetic Encoding / Decoding</h1>
+
+<input id="encodeInput" placeholder="Enter Message like went.">
+<button onclick="encode()">Encode</button>
+
+<br><br>
+
+<input id="encodedValue" placeholder="Enter encoded value like 0.9283899999999998">
+<button onclick="decode()">Decode</button>
+
+<br><br>
+
+<div id="probTable"></div>
+<div id="stepTable"></div>
+<div id="stats"></div>
+<div id="finalOutput"></div>
+<div id="graphContainer"></div>
+
+
+<br><br>
+<a href="/"><button>⬅ Back to Home</button></a>
+
+<script>
+
+let cumulative = null;
+let messageLength = null;
+
+function encode(){
+
+fetch('/arithmetic_encode',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body: JSON.stringify({
+input: document.getElementById('encodeInput').value
+})
+})
+.then(r=>r.json())
+.then(data=>{
+
+cumulative = data.cumulative;
+messageLength = data.length;
+
+
+// ===== Probability Table =====
+let prob_html="<h3>Symbol Probabilities</h3><table>";
+prob_html+="<tr><th>Symbol</th><th>Probability</th></tr>";
+
+for (let key in data.probabilities){
+prob_html+="<tr><td>"+key+"</td><td>"+data.probabilities[key]+"</td></tr>";
+}
+prob_html+="</table>";
+document.getElementById("probTable").innerHTML=prob_html;
+
+
+// ===== Step Table =====
+let html="<h3>Step-by-Step Interval Narrowing</h3><table>";
+html+="<tr><th>Step</th><th>Symbol</th><th>Low</th><th>High</th><th>New Low</th><th>New High</th></tr>";
+
+data.step_table.forEach(row=>{
+html+="<tr>";
+row.forEach(col=>html+="<td>"+col+"</td>");
+html+="</tr>";
+});
+
+html+="</table>";
+document.getElementById("stepTable").innerHTML=html;
+
+
+// ===== Stats =====
+document.getElementById("stats").innerHTML=
+`<h3>Compression Stats</h3>
+Original bits: ${data.stats.original_bits} |
+Encoded bits: ${data.stats.encoded_bits} |
+Ratio: ${data.stats.ratio} |
+%: ${data.stats.percentage}`;
+
+document.getElementById("finalOutput").innerHTML=
+"<h3>Encoded Value:</h3>"+data.encoded_value;
+
+document.getElementById("encodedValue").value=data.encoded_value;
+
+document.getElementById("graphContainer").innerHTML =
+"<h3>Arithmetic Coding Graph</h3>" +
+"<img src='data:image/png;base64," + data.graph + "' style='max-width:100%; border:1px solid black;'>";
+
+
+});
+}
+
+function decode(){
+
+fetch('/arithmetic_decode',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body: JSON.stringify({
+encoded_value: document.getElementById('encodedValue').value,
+cumulative: cumulative,
+length: messageLength
+})
+})
+.then(r=>r.json())
+.then(data=>{
+document.getElementById("finalOutput").innerHTML=
+"<h3>Decoded Message:</h3>"+data.output;
+});
+}
+
+</script>
+
+</body>
+</html>

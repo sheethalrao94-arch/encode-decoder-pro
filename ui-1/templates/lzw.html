@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>LZW - Encode Decoder Pro</title>
+<style>
+body { font-family: Arial; padding:40px; background:#f4f6f9; }
+h1 { color:#2c3e50; }
+input { padding:10px; width:300px; }
+button { padding:10px 15px; background:#2c3e50; color:white; border:none; cursor:pointer; }
+button:hover { background:#34495e; }
+table { border-collapse: collapse; margin-top:20px; }
+th, td { border:1px solid black; padding:6px; text-align:center; }
+th { background:#e0e0e0; }
+</style>
+</head>
+
+<body>
+
+<h1>LZW Encoding / Decoding</h1>
+
+<input id="encodeInput" placeholder="Enter string like ABABBABCABABBA">
+<button onclick="encode()">Encode</button>
+
+<br><br>
+
+<input id="decodeInput" placeholder="Enter codes like 1, 2, 4, 5, 2, 3, 4, 6, 1">
+<button onclick="decode()">Decode</button>
+
+<br><br>
+
+<div id="outputTable"></div>
+<div id="stats"></div>
+<div id="finalOutput"></div>
+
+<br><br>
+<a href="/"><button>⬅ Back to Home</button></a>
+
+<script>
+
+let initDict = null;
+
+/* ================= ENCODE ================= */
+
+function encode(){
+
+let text = document.getElementById('encodeInput').value.trim();
+
+if(text === ""){
+    alert("Please enter text to encode.");
+    return;
+}
+
+fetch('/lzw_encode',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body: JSON.stringify({ input: text })
+})
+.then(r=>r.json())
+.then(data=>{
+
+if(data.error){
+    alert(data.error);
+    return;
+}
+
+initDict = data.init_dict;
+showResult(data);
+
+})
+.catch(err=>{
+console.error("Encode Error:", err);
+alert("Encoding failed.");
+});
+}
+
+
+/* ================= DECODE ================= */
+
+function decode(){
+
+if(!initDict){
+    alert("Please encode first to generate dictionary.");
+    return;
+}
+
+let rawInput = document.getElementById('decodeInput').value.trim();
+
+if(rawInput === ""){
+    alert("Please enter codes to decode.");
+    return;
+}
+
+// remove spaces
+rawInput = rawInput.replace(/\s+/g,'');
+
+fetch('/lzw_decode',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body: JSON.stringify({
+input: rawInput,
+init_dict: initDict
+})
+})
+.then(r=>r.json())
+.then(data=>{
+
+if(data.error){
+    alert(data.error);
+    return;
+}
+
+showResult(data);
+
+})
+.catch(err=>{
+console.error("Decode Error:", err);
+alert("Decoding failed.");
+});
+}
+
+
+/* ================= DISPLAY RESULT ================= */
+
+function showResult(data){
+
+if(!data.table){
+    alert("Unexpected response from server.");
+    return;
+}
+
+let html = `
+<table>
+<tr>
+<th>Step</th>
+<th>w</th>
+<th>c / k</th>
+<th>w+c / entry</th>
+<th>Output</th>
+<th>New Entry</th>
+</tr>
+`;
+
+data.table.forEach(row=>{
+html+="<tr>";
+row.forEach(col=>html+="<td>"+col+"</td>");
+html+="</tr>";
+});
+
+html+="</table>";
+
+document.getElementById("outputTable").innerHTML = html;
+
+document.getElementById("stats").innerHTML =
+`<h3>Compression Stats</h3>
+Original: ${data.stats.original} |
+Encoded: ${data.stats.encoded} |
+Ratio: ${data.stats.ratio} |
+%: ${data.stats.percentage}`;
+
+document.getElementById("finalOutput").innerHTML =
+"<h3>Output:</h3> " + data.output;
+
+}
+
+</script>
+
+</body>
+</html>

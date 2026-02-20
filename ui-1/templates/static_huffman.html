@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Static Huffman - Encode Decoder Pro</title>
+<style>
+body { font-family: Arial; padding:40px; background:#f4f6f9; }
+h1 { color:#2c3e50; }
+input { padding:10px; width:300px; }
+button { padding:10px 15px; background:#2c3e50; color:white; border:none; cursor:pointer; }
+table { border-collapse: collapse; margin-top:20px; }
+th, td { border:1px solid black; padding:6px; }
+img { margin-top:20px; }
+</style>
+</head>
+
+<body>
+
+<h1>Static Huffman Encoding</h1>
+
+<label>Symbols (comma separated):</label><br>
+<input id="symbols" placeholder="A,B,C,D,E,F,G,H"><br><br>
+
+<label>Frequencies (comma separated):</label><br>
+<input id="frequencies" placeholder="0.25,0.25,0.14,0.14,0.055,0.055,0.055,0.055"><br><br>
+
+<label>Message:</label><br>
+<input id="message" placeholder="ABCDABEFGH"><br><br>
+
+<button onclick="encode()">Build & Encode</button>
+
+
+<div id="mergeTable"></div>
+<div id="codeTable"></div>
+<div id="results"></div>
+<div id="tree"></div>
+
+<br><br>
+<a href="/"><button>⬅ Back to Home</button></a>
+
+<script>
+function encode(){
+
+fetch('/static_huffman_encode',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body: JSON.stringify({
+symbols: document.getElementById('symbols').value,
+frequencies: document.getElementById('frequencies').value,
+message: document.getElementById('message').value
+})
+})
+.then(r=>r.json())
+.then(data=>{
+
+// MERGE TABLE
+let merge_html="<h3>Merge Steps</h3><table>";
+merge_html+="<tr><th>Step</th><th>Node1</th><th>Prob1</th><th>Node2</th><th>Prob2</th><th>Merged</th></tr>";
+
+data.merge_steps.forEach(row=>{
+merge_html+="<tr>";
+row.forEach(col=>merge_html+="<td>"+col+"</td>");
+merge_html+="</tr>";
+});
+merge_html+="</table>";
+document.getElementById("mergeTable").innerHTML=merge_html;
+
+
+// CODE TABLE
+let code_html="<h3>Huffman Codes</h3><table>";
+code_html+="<tr><th>Symbol</th><th>Code</th></tr>";
+
+for (let key in data.codes){
+code_html+="<tr><td>"+key+"</td><td>"+data.codes[key]+"</td></tr>";
+}
+code_html+="</table>";
+document.getElementById("codeTable").innerHTML=code_html;
+
+
+// RESULTS
+document.getElementById("results").innerHTML=
+`<h3>Results</h3>
+Encoded: ${data.encoded}<br>
+Decoded: ${data.decoded}<br><br>
+Lavg: ${data.Lavg}<br>
+Entropy: ${data.Entropy}<br>
+Efficiency: ${data.Efficiency}<br>
+Redundancy: ${data.Redundancy}`;
+
+
+// TREE
+document.getElementById("tree").innerHTML =
+"<h3>Huffman Tree</h3><img src='data:image/png;base64,"+data.graph+"'/>";
+
+});
+}
+
+
+function decode(){
+
+fetch('/static_huffman_decode',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body: JSON.stringify({
+input: document.getElementById('decodeInput').value
+})
+})
+.then(r=>r.json())
+.then(data=>{
+document.getElementById("results").innerHTML +=
+"<br><br><b>Decoded Output:</b> " + data.decoded;
+});
+}
+
+</script>
+
+</body>
+</html>

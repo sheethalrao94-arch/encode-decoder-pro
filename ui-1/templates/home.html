@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Encode-Decoder Pro</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(135deg,#141e30,#243b55);
+            text-align: center;
+            padding-top: 80px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 55px;
+            margin-bottom: 60px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: white;
+            color: black;
+            padding: 30px;
+            width: 250px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+    </style>
+</head>
+<body>
+
+<h1> Encode-Decoder Pro: </h1>
+
+<div class="container">
+
+<a href="/static_huffman">
+<div class="card">
+<h2>Static Huffman</h2>
+<p>Classic Huffman Coding</p>
+</div>
+</a>
+
+<a href="/dynamic_huffman">
+<div class="card">
+<h2>Dynamic Huffman</h2>
+<p>Adaptive Huffman Coding</p>
+</div>
+</a>
+
+<a href="/lzw">
+<div class="card">
+<h2>LZW</h2>
+<p>Dictionary Compression</p>
+</div>
+</a>
+
+<a href="/arithmetic">
+<div class="card">
+<h2>Arithmetic Encoding</h2>
+<p>Interval Compression</p>
+</div>
+</a>
+
+</div>
+
+</body>
+</html>
